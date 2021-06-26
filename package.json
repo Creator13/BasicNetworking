@@ -1,0 +1,20 @@
+{
+    "name": "com.cvanbattum.networking",
+    "version": "1.0.0",
+    "displayName": "Basic Networking in Unity",
+    "description": "Provides a thin but powerful messaging and client/server API on top of Unity's built-in, preview Transport API",
+    "unity": "2021.1",
+    "dependencies": {
+      "com.unity.transport": "0.8.0-preview.8",
+      "com.unity.collections": "0.17.0-preview.18"
+   },
+   "keywords": [
+      "networking",
+      "netcode"
+    ],
+    "author": {
+      "name": "Casper van Battum",
+      "email": "cvanbattum@gmail.com",
+      "url": "https://github.com/Creator13"
+    }
+  }
