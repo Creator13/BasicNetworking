@@ -170,7 +170,7 @@ namespace Networking
         public void SendUnicast(NetworkConnection connection, MessageHeader header, bool reliable = true)
         {
             jobHandle.Complete();
-            
+
             var result = driver.BeginSend(reliable ? pipeline : NetworkPipeline.Null, connection, out var writer);
             if (result == 0)
             {
@@ -182,7 +182,7 @@ namespace Networking
         public void SendBroadcast(MessageHeader header, NetworkConnection toExclude = default, bool reliable = true)
         {
             jobHandle.Complete();
-            
+
             for (var i = 0; i < connections.Length; i++)
             {
                 if (!connections[i].IsCreated || connections[i] == toExclude) continue;
@@ -294,33 +294,11 @@ namespace Networking
 
             var hasKey = false;
             // First execute default handlers to ensure proper functioning of server & client connection
-            if (DefaultMessageHandlers.ContainsKey(msgType))
-            {
-                hasKey = true;
-                try
-                {
-                    DefaultMessageHandlers[msgType].Invoke(connection, header);
-                }
-                catch (KeyNotFoundException e)
-                {
-                    Debug.LogError($"Badly formatted message received: {msgType}\n{e.StackTrace}");
-                }
-            }
+            hasKey |= TryInvokeMessageHeader(DefaultMessageHandlers, connection, msgType, header);
 
             // Then execute game-specific handlers
-            if (NetworkMessageHandlers.ContainsKey(msgType))
-            {
-                hasKey = true;
-                try
-                {
-                    NetworkMessageHandlers[msgType].Invoke(connection, header);
-                }
-                catch (KeyNotFoundException e)
-                {
-                    Debug.LogError($"Badly formatted message received: {msgType}\n{e.StackTrace}");
-                }
-            }
-
+            hasKey |= TryInvokeMessageHeader(NetworkMessageHandlers, connection, msgType, header);
+            
             if (!hasKey)
             {
                 Debug.LogWarning($"Unsupported message type received: {msgType}");
@@ -333,6 +311,32 @@ namespace Networking
             {
                 keepAliveStatusMap[connection].receivedReplySinceLast = true;
             }
+        }
+
+        private static bool TryInvokeMessageHeader(
+            Dictionary<ushort, ServerMessageHandler> handlerDict, NetworkConnection connection, ushort msgType, MessageHeader header
+        )
+        {
+            if (handlerDict.ContainsKey(msgType))
+            {
+                try
+                {
+                    handlerDict[msgType].Invoke(connection, header);
+                }
+                catch (KeyNotFoundException e)
+                {
+                    Debug.LogError($"Badly formatted message received: {msgType}\n{e.StackTrace}");
+                }
+                catch (Exception)
+                {
+                    Debug.LogError($"Unexpected error while reading message of type: {msgType}");
+                    throw;
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -196,31 +196,9 @@ namespace Networking
             header.DeserializeObject(ref reader);
 
             var hasKey = false;
-            if (DefaultMessageHandlers.ContainsKey(msgType))
-            {
-                hasKey = true;
-                try
-                {
-                    DefaultMessageHandlers[msgType].Invoke(header);
-                }
-                catch (InvalidCastException e)
-                {
-                    Debug.LogError($"Malformed message received: code {msgType}\n{e}");
-                }
-            }
+            hasKey |= TryInvokeMessageHeader(DefaultMessageHandlers, msgType, header);
 
-            if (NetworkMessageHandlers.ContainsKey(msgType))
-            {
-                hasKey = true;
-                try
-                {
-                    NetworkMessageHandlers[msgType].Invoke(header);
-                }
-                catch (InvalidCastException e)
-                {
-                    Debug.LogError($"Malformed message received: code {msgType}\n{e}");
-                }
-            }
+            hasKey |= TryInvokeMessageHeader(NetworkMessageHandlers, msgType, header);
 
             if (!hasKey)
             {
@@ -232,6 +210,30 @@ namespace Networking
         {
             var pongMsg = new PongMessage();
             SendPackedMessage(pongMsg);
+        }
+
+        private static bool TryInvokeMessageHeader(Dictionary<ushort, ClientMessageHandler> handlerDict, ushort msgType, MessageHeader header)
+        {
+            if (handlerDict.ContainsKey(msgType))
+            {
+                try
+                {
+                    handlerDict[msgType].Invoke(header);
+                }
+                catch (InvalidCastException e)
+                {
+                    Debug.LogError($"Malformed message received: code {msgType}\n{e}");
+                }
+                catch (Exception)
+                {
+                    Debug.LogError($"Unexpected error while reading message of type: {msgType}");
+                    throw;
+                }
+                
+                return true;
+            }
+
+            return false;
         }
     }
 }
