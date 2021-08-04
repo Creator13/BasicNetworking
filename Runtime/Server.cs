@@ -167,7 +167,7 @@ namespace Networking
 
         protected virtual void AcceptConnection(NetworkConnection connection) { }
 
-        public void SendUnicast(NetworkConnection connection, MessageHeader header, bool reliable = true)
+        public void SendMessage(NetworkConnection connection, MessageHeader header, bool reliable = true)
         {
             jobHandle.Complete();
 
@@ -280,7 +280,7 @@ namespace Networking
         {
             var status = keepAliveStatusMap[connection];
 
-            SendUnicast(connection, new PingMessage());
+            SendMessage(connection, new PingMessage());
             status.receivedReplySinceLast = false;
             status.lastSendTime = Time.time;
         }

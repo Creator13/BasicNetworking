@@ -172,7 +172,7 @@ namespace Networking
 
         protected abstract void OnDisconnected();
 
-        public void SendPackedMessage(MessageHeader header)
+        public void SendMessage(MessageHeader header)
         {
             jobHandle.Complete();
             var result = driver.BeginSend(pipeline, connection, out var writer);
@@ -209,7 +209,7 @@ namespace Networking
         private void HandlePing(MessageHeader header)
         {
             var pongMsg = new PongMessage();
-            SendPackedMessage(pongMsg);
+            SendMessage(pongMsg);
         }
 
         private static bool TryInvokeMessageHeader(Dictionary<ushort, ClientMessageHandler> handlerDict, ushort msgType, MessageHeader header)

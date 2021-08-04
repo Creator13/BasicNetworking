@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Networking
 {
-    public static class NetworkMessageInfo
+    public static class  NetworkMessageInfo
     {
         public static readonly Dictionary<ushort, Type> typeMap =
             new Dictionary<ushort, Type> {
